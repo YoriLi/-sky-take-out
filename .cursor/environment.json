@@ -1,0 +1,16 @@
+{
+  "name": "苍穹外卖 (sky-take-out)",
+  "install": "bash .cursor/install.sh",
+  "start": "bash .cursor/start.sh",
+  "terminals": [
+    {
+      "name": "backend (sky-server :8080)",
+      "command": "bash .cursor/run-backend.sh"
+    },
+    {
+      "name": "frontend (admin :8081)",
+      "command": "bash .cursor/run-frontend.sh"
+    }
+  ],
+  "ports": [8080, 8081]
+}
