@@ -39,10 +39,10 @@
                 and d.name like concat('%',#{name},'%')
             </if>
             <if test="categoryId!=null">
-                and d.categoryId like concat('%',#{categoryId},'%')
+                and d.category_id = #{categoryId}
             </if>
             <if test="status!=null">
-                and d.status like concat('%',#{status},'%')
+                and d.status = #{status}
             </if>
         </where>
         order by d.create_time desc
