@@ -7,8 +7,8 @@ import com.sky.vo.OrderReportVO;
 import com.sky.vo.SalesTop10ReportVO;
 import com.sky.vo.TurnoverReportVO;
 import com.sky.vo.UserReportVO;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -25,14 +25,14 @@ import java.time.LocalDate;
 @RestController
 @RequestMapping("/admin/report")
 @Slf4j
-@Tag(name = "统计报表相关接口")
+@Api(tags = "统计报表相关接口")
 public class ReportController {
 
     @Autowired
     private ReportService reportService;
 
     @GetMapping("/turnoverStatistics")
-    @Operation(summary = "营业额数据统计")
+    @ApiOperation("营业额数据统计")
     public Result<TurnoverReportVO> turnoverStatistics(
             @DateTimeFormat(pattern = "yyyy-MM-dd")
             LocalDate begin,
@@ -48,7 +48,7 @@ public class ReportController {
      * @return
      */
     @GetMapping("/userStatistics")
-    @Operation(summary = "用户数据统计")
+    @ApiOperation("用户数据统计")
     public Result<UserReportVO> userStatistics(
             @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate begin,
             @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate end){
@@ -63,7 +63,7 @@ public class ReportController {
      * @return
      */
     @GetMapping("/ordersStatistics")
-    @Operation(summary = "用户数据统计")
+    @ApiOperation("用户数据统计")
     public Result<OrderReportVO> orderStatistics(
             @DateTimeFormat(pattern = "yyyy-MM-dd")
             LocalDate begin,
@@ -80,7 +80,7 @@ public class ReportController {
      * @return
      */
     @GetMapping("/top10")
-    @Operation(summary = "销量排名统计")
+    @ApiOperation("销量排名统计")
     public Result<SalesTop10ReportVO> top10(
             @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate begin,
             @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate end){
@@ -92,7 +92,7 @@ public class ReportController {
      * @param response
      */
     @GetMapping("/export")
-    @Operation(summary = "导出运营数据报表")
+    @ApiOperation("导出运营数据报表")
     public void export(HttpServletResponse response){
         reportService.exportBusinessData(response);
     }

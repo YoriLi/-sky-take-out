@@ -11,8 +11,8 @@ import com.sky.result.Result;
 import com.sky.service.EmployeeService;
 import com.sky.utils.JwtUtil;
 import com.sky.vo.EmployeeLoginVO;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -28,7 +28,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/admin/employee")
 @Slf4j
-@Tag(name = "员工相关接口")
+@Api(tags = "员工相关接口")
 public class EmployeeController {
 
     @Autowired
@@ -82,7 +82,7 @@ public class EmployeeController {
      * @return
      */
     @PostMapping
-    @Operation(summary = "新增员工")
+    @ApiOperation("新增员工")
     public Result save(@RequestBody EmployeeDTO employeeDTO) {
         log.info("新增员工：{}",employeeDTO);
         employeeService.save(employeeDTO);
@@ -95,7 +95,7 @@ public class EmployeeController {
      * @return
      */
     @GetMapping("/page")
-    @Operation(summary = "员工分页查询")
+    @ApiOperation("员工分页查询")
     public Result<PageResult> page(EmployeePageQueryDTO employeePageQueryDTO) {
         log.info("员工分页查询，参数为：{}", employeePageQueryDTO);
         PageResult pageResult = employeeService.pageQuery(employeePageQueryDTO);
@@ -109,7 +109,7 @@ public class EmployeeController {
      * @return
      */
     @PostMapping("/status/{status}")
-    @Operation(summary = "启用禁用员工账户")
+    @ApiOperation("启用禁用员工账户")
     public Result startOrStop(@PathVariable Integer status, Long id) {
         log.info("启用禁用员工账户：{}，{}", status, id);
         employeeService.startOrStop(status, id);
@@ -122,7 +122,7 @@ public class EmployeeController {
      * @return
      */
     @GetMapping("/{id}")
-    @Operation(summary = "根据iD查询用户信息")
+    @ApiOperation("根据iD查询用户信息")
     public Result<Employee> getById(@PathVariable Long id) {
         log.info("根据iD查询用户信息：{}", id);
         Employee employee = employeeService.getById(id);
@@ -135,7 +135,7 @@ public class EmployeeController {
      * @return
      */
     @PutMapping
-    @Operation(summary = "编辑员工信息")
+    @ApiOperation("编辑员工信息")
     public Result update(@RequestBody EmployeeDTO employeeDTO) {
         log.info("编辑员工信息：{}", employeeDTO);
         employeeService.update(employeeDTO);
