@@ -4,22 +4,17 @@ import com.sky.interceptor.JwtTokenAdminInterceptor;
 import com.sky.interceptor.JwtTokenUserInterceptor;
 import com.sky.json.JacksonObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.springdoc.webmvc.ui.SwaggerWebMvcConfigurer;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurationSupport;
-import springfox.documentation.builders.ApiInfoBuilder;
-import springfox.documentation.builders.PathSelectors;
-import springfox.documentation.builders.RequestHandlerSelectors;
-import springfox.documentation.service.ApiInfo;
-import springfox.documentation.spi.DocumentationType;
-import springfox.documentation.spring.web.plugins.Docket;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * 配置类，注册web层相关组件
@@ -37,6 +32,15 @@ public class WebMvcConfiguration extends WebMvcConfigurationSupport {
 
     @Autowired
     private JwtTokenUserInterceptor jwtTokenUserInterceptor;
+
+    /**
+     * SpringDoc 通过实现 WebMvcConfigurer 来注册 swagger-ui 的静态资源，
+     * 但本类是直接继承 WebMvcConfigurationSupport 的，容器里的 WebMvcConfigurer 不会被自动应用，
+     * 所以这里显式取出并在 addResourceHandlers 中手动委派，否则 /swagger-ui/index.html 会 404。
+     * 用 Optional 是为了在 springdoc.swagger-ui.enabled=false 时仍能正常启动。
+     */
+    @Autowired
+    private Optional<SwaggerWebMvcConfigurer> swaggerWebMvcConfigurer;
 
     /**
      * 注册自定义拦截器
@@ -63,43 +67,19 @@ public class WebMvcConfiguration extends WebMvcConfigurationSupport {
     }
 
     /**
-     * 通过knife4j生成接口文档
-     * @return
-     */
-    @Bean
-    // @Bean : 将方法返回值（Docket 对象）交给 Spring IoC 容器管理
-    public Docket docket() {
-        ApiInfo apiInfo = new ApiInfoBuilder()
-                .title("苍穹外卖项目接口文档")
-                .version("2.0")
-                .description("苍穹外卖项目接口文档")
-                .build();
-        Docket docket = new Docket(DocumentationType.SWAGGER_2)
-                // 使用 Swagger 2.0 规范
-                .apiInfo(apiInfo)
-                .select()
-                .apis(RequestHandlerSelectors.basePackage("com.sky.controller"))
-                // 开始扫描哪些包下的 Controller
-                // .apis : 指定扫描路径。这里指定 com.sky.controller 包（包含 admin 和 user）
-                .paths(PathSelectors.any())
-                // .paths : 所有路径都生成文档（PathSelectors.any()）
-                .build();
-        return docket;
-    }
-
-    /**
      * 设置静态资源映射
      * @param registry
      */
-    // 设置静态资源映射（让 Spring MVC 能找到 doc.html 等页面）
-    // 虽然拦截器放过了 /doc.html，但如果 Spring MVC 找不到资源，还是会报 404。
-    //  这里把请求路径指向 jar 包里的真实位置。
+    // 设置静态资源映射（让 Spring MVC 能找到 swagger-ui 的页面和 js/css）
+    // 如果 Spring MVC 找不到资源，访问文档页面就会报 404。
     protected void addResourceHandlers(ResourceHandlerRegistry registry) {
 
-        registry.addResourceHandler("/doc.html").addResourceLocations("classpath:/META-INF/resources/");
-        // 当访问 /doc.html 时，去 classpath:/META-INF/resources/ 目录下找文件
         registry.addResourceHandler("/webjars/**").addResourceLocations("classpath:/META-INF/resources/webjars/");
-        // 当访问 /webjars/** （Swagger 依赖的前端静态文件）时，去对应目录找
+        // 当访问 /webjars/** （前端静态文件）时，去对应目录找
+
+        // 把 /swagger-ui/** 的映射交给 SpringDoc 自己注册，
+        // 这样 swagger-ui 的版本号、资源路径都由 SpringDoc 维护，升级依赖时无需改动本类。
+        swaggerWebMvcConfigurer.ifPresent(configurer -> configurer.addResourceHandlers(registry));
     }
 
     /**
@@ -120,47 +100,5 @@ public class WebMvcConfiguration extends WebMvcConfigurationSupport {
         converter.setObjectMapper(new JacksonObjectMapper());
         //将自己的消息转化器加入容器中 3. 将自己的转换器放在列表的最前面（索引 0）优先级最高，Spring 会优先使用这个转换器处理 JSON。
         converters.add(0,converter);
-    }
-
-    @Bean
-    public Docket docket1(){
-        log.info("准备生成接口文档...");
-        ApiInfo apiInfo = new ApiInfoBuilder()
-                .title("苍穹外卖项目接口文档")
-                .version("2.0")
-                .description("苍穹外卖项目接口文档")
-                .build();
-
-        Docket docket = new Docket(DocumentationType.SWAGGER_2)
-                .groupName("管理端接口")
-                .apiInfo(apiInfo)
-                .select()
-                //指定生成接口需要扫描的包
-                .apis(RequestHandlerSelectors.basePackage("com.sky.controller.admin"))
-                .paths(PathSelectors.any())
-                .build();
-
-        return docket;
-    }
-
-    @Bean
-    public Docket docket2(){
-        log.info("准备生成接口文档...");
-        ApiInfo apiInfo = new ApiInfoBuilder()
-                .title("苍穹外卖项目接口文档")
-                .version("2.0")
-                .description("苍穹外卖项目接口文档")
-                .build();
-
-        Docket docket = new Docket(DocumentationType.SWAGGER_2)
-                .groupName("用户端接口")
-                .apiInfo(apiInfo)
-                .select()
-                //指定生成接口需要扫描的包
-                .apis(RequestHandlerSelectors.basePackage("com.sky.controller.user"))
-                .paths(PathSelectors.any())
-                .build();
-
-        return docket;
     }
 }
