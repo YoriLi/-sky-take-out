@@ -98,7 +98,18 @@ public class WebMvcConfiguration extends WebMvcConfigurationSupport {
         MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
         //需要为消息转换器设置一个对象转换器，对象转换器可以将Java对象序列化为json数据
         converter.setObjectMapper(new JacksonObjectMapper());
-        //将自己的消息转化器加入容器中 3. 将自己的转换器放在列表的最前面（索引 0）优先级最高，Spring 会优先使用这个转换器处理 JSON。
-        converters.add(0,converter);
+
+        //将自己的转换器插到默认的 Jackson 转换器之前，这样处理 JSON 时会优先用我们的转换器。
+        //注意不能直接放到索引 0：那样会排在 ByteArray/String 转换器前面，
+        //SpringDoc 的 /v3/api-docs 返回的是 byte[]，会被 Jackson 当普通对象序列化成 Base64 字符串，
+        //导致接口文档无法被 Swagger UI 解析。
+        int index = converters.size();
+        for (int i = 0; i < converters.size(); i++) {
+            if (converters.get(i) instanceof MappingJackson2HttpMessageConverter) {
+                index = i;
+                break;
+            }
+        }
+        converters.add(index, converter);
     }
 }

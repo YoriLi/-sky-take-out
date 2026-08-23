@@ -11,6 +11,7 @@ import com.sky.vo.OrderVO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
+import org.springdoc.api.annotations.ParameterObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -33,7 +34,7 @@ public class OrderController {
      */
     @GetMapping("/conditionSearch")
     @Operation(summary = "订单搜索")
-    public Result<PageResult> conditionSearch(OrdersPageQueryDTO ordersPageQueryDTO) {
+    public Result<PageResult> conditionSearch(@ParameterObject OrdersPageQueryDTO ordersPageQueryDTO) {
         PageResult pageResult = orderService.conditionSearch(ordersPageQueryDTO);
         return Result.success(pageResult);
     }
