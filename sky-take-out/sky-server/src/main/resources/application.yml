@@ -1,0 +1,68 @@
+server:
+  port: 8080
+  # 给Tomcat服务器设置监听 8080 端口
+spring:
+  profiles:
+    active: dev
+    # 激活名为 'dev' 的配置文件（即加载 application-dev.yml）
+  main:
+    allow-circular-references: true
+    # 允许 Bean 之间的循环依赖（比如 A依赖B，B依赖A）。
+  datasource:
+    druid: # 使用阿里巴巴的 Druid 数据库连接池（自带监控页面）
+      driver-class-name: ${sky.datasource.driver-class-name}
+      url: jdbc:mysql://${sky.datasource.host}:${sky.datasource.port}/${sky.datasource.database}?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&useSSL=false&allowPublicKeyRetrieval=true
+      username: ${sky.datasource.username} # 数据库登录名
+      password: ${sky.datasource.password} # 数据库登录名
+  redis:
+    host: ${sky.redis.host} # Redis 服务器地址
+    port: ${sky.redis.port} # Redis 端口（默认6379）
+    password: ${sky.redis.password} # Redis 访问密码（没有则为空）
+    database: ${sky.redis.database} # 指定使用 Redis 的第几个库（默认0-15）
+
+mybatis:
+  #mapper配置文件
+  mapper-locations: classpath:mapper/*.xml  # 指定 XML 映射文件存放路径（在 resources/mapper 下）
+  type-aliases-package: com.sky.entity  #给实体类起别名，这样在 XML 中不用写全类名
+  configuration:
+    #开启驼峰命名：数据库字段 user_name 自动映射为 Java 实体类属性 userName
+    map-underscore-to-camel-case: true
+
+logging:
+  level:
+    com:
+      sky:
+        mapper: debug # 打印 Mapper 层执行的 SQL 语句（方便调试看SQL）
+        service: info # 业务层只打印 info 及以上级别（不打印琐碎的debug日志）
+        controller: info  # 控制层只打印 info 级别
+
+sky:
+  jwt:
+    # 设置jwt签名加密时使用的秘钥
+    admin-secret-key: itcast # 管理端生成 Token 的加密密钥（签名秘钥）
+    # 设置jwt过期时间。单位毫秒
+    admin-ttl: 7200000
+    # 设置前端传递过来的令牌名称
+    admin-token-name: token  # 管理端前端请求头中携带 Token 的键名（如 Header 里的 key 叫 'token'）
+    user-secret-key:   # 用户端（小程序）生成 Token 的密钥
+    user-ttl: 7200000
+    user-token-name: authentication
+  alioss: # 阿里云 OSS（对象存储服务，用于上传图片/文件）
+    endpoint: ${sky.alioss.endpoint}  # OSS 节点地址（如 oss-cn-hangzhou.aliyuncs.com）
+    access-key-id: ${sky.alioss.access-key-id} # 阿里云账号的 AccessKey ID
+    access-key-secret: ${sky.alioss.access-key-secret} # AccessKey Secret
+    bucket-name: ${sky.alioss.bucket-name} # 存储空间的名称（Bucket）
+  wechat: # 微信支付相关配置
+    appid: ${sky.wechat.appid}  # 微信小程序 AppID
+    secret: ${sky.wechat.secret} # 微信小程序 AppSecret
+    mchid: ${sky.wechat.mchid}  # 微信商户号（支付商户）
+    mchSerialNo: ${sky.wechat.mchSerialNo}  # 商户证书序列号
+    privateKeyFilePath: ${sky.wechat.privateKeyFilePath}  # 商户私钥文件路径
+    apiV3Key: ${sky.wechat.apiV3Key} # 微信支付 API v3 密钥
+    weChatPayCertFilePath: ${sky.wechat.weChatPayCertFilePath}  # 微信支付平台证书路径
+    notifyUrl: ${sky.wechat.notifyUrl} # 支付成功后，微信回调通知的地址
+    refundNotifyUrl: ${sky.wechat.refundNotifyUrl}  # 退款成功后，回调通知地址
+  shop:
+    address: 湖北省武汉市洪山区徐东大街18号  # 固定店铺地址（用于计算配送距离/范围）
+  baidu:
+    ak: EFEEFFEFEFE # 百度地图 API 的密钥（用于根据地址计算经纬度或距离）
