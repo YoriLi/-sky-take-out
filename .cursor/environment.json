@@ -1,0 +1,17 @@
+{
+  "name": "sky-take-out (苍穹外卖)",
+  "user": "ubuntu",
+  "install": "bash .cursor/install.sh",
+  "start": "bash .cursor/start.sh",
+  "terminals": [
+    {
+      "name": "backend (sky-server :8080)",
+      "command": "export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64; cd sky-take-out && java -jar sky-server/target/sky-server-1.0-SNAPSHOT.jar"
+    },
+    {
+      "name": "frontend (admin :8081)",
+      "command": "source .cursor/node-env.sh; cd project-rjwm-admin-vue-ts && yarn serve"
+    }
+  ],
+  "ports": [8080, 8081]
+}
