@@ -35,6 +35,6 @@ export PATH="$(dirname "$(nvm which 16)"):$PATH"
 command -v yarn >/dev/null 2>&1 || npm i -g yarn
 
 echo "==> Frontend: install admin dependencies"
-( cd project-rjwm-admin-vue-ts && yarn install --network-timeout 600000 )
+( cd project-rjwm-admin-vue-ts && yarn install --frozen-lockfile --network-timeout 600000 )
 
 echo "==> install.sh complete"
