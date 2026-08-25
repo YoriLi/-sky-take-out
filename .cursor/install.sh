@@ -1,13 +1,24 @@
 #!/usr/bin/env bash
 # Idempotent repository bootstrap for the sky-take-out (苍穹外卖) stack.
-# Builds the Spring Boot backend (JDK 8) and installs the Vue admin frontend deps (Node 16).
+# Installs system toolchains (JDK 8, Maven, MySQL, Redis), builds the Spring Boot
+# backend, and installs the Vue admin frontend deps (Node 16). Safe to re-run.
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$REPO_ROOT"
 
+JDK8_HOME=/usr/lib/jvm/java-8-openjdk-amd64
+
+echo "==> System packages: JDK 8, Maven, MySQL, Redis"
+if [ ! -d "$JDK8_HOME" ] || ! command -v mvn >/dev/null 2>&1 \
+   || ! command -v mysqld >/dev/null 2>&1 || ! command -v redis-server >/dev/null 2>&1; then
+  sudo apt-get update -y
+  sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+    openjdk-8-jdk maven mysql-server redis-server ca-certificates curl
+fi
+
 echo "==> Backend: build sky-server with JDK 8 + Maven"
-export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
+export JAVA_HOME="$JDK8_HOME"
 export PATH="$JAVA_HOME/bin:$PATH"
 ( cd sky-take-out && mvn -q -DskipTests clean package )
 
