@@ -22,6 +22,8 @@ import com.sky.vo.OrderStatisticsVO;
 import com.sky.vo.OrderSubmitVO;
 import com.sky.vo.OrderVO;
 import com.sky.websocket.WebSocketServer;
+import dev.langchain4j.agent.tool.P;
+import dev.langchain4j.agent.tool.Tool;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -245,7 +247,8 @@ public class OrderServiceImpl implements OrderService {
      * @return
      */
     @Override
-    public OrderVO details(Long id) {
+    @Tool(name = "getOrderDetail", value = "按订单内部 id 查询订单详情，含菜品明细。用户要看某一笔订单的具体内容时使用。")
+    public OrderVO details(@P("订单内部 id，必填") Long id) {
         Orders orders = orderMapper.getById(id);
         if (orders == null) {
             throw new OrderBusinessException(MessageConstant.ORDER_NOT_FOUND);
@@ -322,7 +325,8 @@ public class OrderServiceImpl implements OrderService {
      * @return
      */
     @Override
-    public PageResult conditionSearch(OrdersPageQueryDTO ordersPageQueryDTO) {
+    @Tool(name = "searchOrders", value = "按订单号/手机号/状态分页查询订单。用户想找某笔或某类订单时使用。不要编造订单号。page 默认 1，pageSize 建议 10。status：1待付款 2待接单 3已接单 4派送中 5已完成 6已取消。")
+    public PageResult conditionSearch(@P("查询条件，字段：page, pageSize, number(订单号可空), phone(手机号可空), status(1-6可空)") OrdersPageQueryDTO ordersPageQueryDTO) {
         PageHelper.startPage(ordersPageQueryDTO.getPage(), ordersPageQueryDTO.getPageSize());
 
         Page<Orders> pageQuery = orderMapper.pageQuery(ordersPageQueryDTO);
@@ -337,6 +341,7 @@ public class OrderServiceImpl implements OrderService {
      * @return
      */
     @Override
+    @Tool(name = "countOrdersByStatus", value = "统计当前待接单、已接单、派送中的订单数量。用户问积压、待处理订单时使用。")
     public OrderStatisticsVO statistics() {
 //        根据状态，分别查询出接待单，待派送、派送中的订单数量
         Integer toBeConfirmed = orderMapper.countStatus(Orders.TO_BE_CONFIRMED);
@@ -357,7 +362,8 @@ public class OrderServiceImpl implements OrderService {
      * @param ordersCancelDTO
      */
     @Override
-    public void confirm(OrdersConfirmDTO ordersConfirmDTO) {
+    @Tool(name = "confirmOrder", value = "商家接单。仅在用户明确给出订单 id 时调用，禁止臆造 id。一般只传 id。")
+    public void confirm(@P("接单数据，只需设置 id") OrdersConfirmDTO ordersConfirmDTO) {
         Orders orders = Orders.builder()
                 .id(ordersConfirmDTO.getId())
                 .status(Orders.CONFIRMED)
@@ -370,7 +376,8 @@ public class OrderServiceImpl implements OrderService {
      * @param ordersRejectionDTO
      */
     @Override
-    public void rejection(OrdersRejectionDTO ordersRejectionDTO) throws Exception {
+    @Tool(name = "rejectOrder", value = "商家拒单。必须同时提供订单 id 和拒绝原因，没有原因时不要调用，应先追问。")
+    public void rejection(@P("拒单数据：id 必填，rejectionReason 必填") OrdersRejectionDTO ordersRejectionDTO) throws Exception {
 //        根据id查询订单
         Orders ordersDB = orderMapper.getById(ordersRejectionDTO.getId());
 
@@ -407,7 +414,8 @@ public class OrderServiceImpl implements OrderService {
      * @param ordersCancelDTO
      */
     @Override
-    public void cancel(OrdersCancelDTO ordersCancelDTO) throws Exception {
+    @Tool(name = "cancelOrder", value = "商家取消订单。必须同时提供订单 id 和取消原因，没有原因时不要调用，应先追问。")
+    public void cancel(@P("取消数据：id 必填，cancelReason 必填") OrdersCancelDTO ordersCancelDTO) throws Exception {
 //        根据id查询订单
         Orders orderDB = orderMapper.getById(ordersCancelDTO.getId());
 
@@ -438,7 +446,8 @@ public class OrderServiceImpl implements OrderService {
      * @param id
      */
     @Override
-    public void delivery(Long id) {
+    @Tool(name = "deliverOrder", value = "将已接单的订单改为派送中。需要订单内部 id。")
+    public void delivery(@P("订单内部 id，必填") Long id) {
 //        根据id查询订单
         Orders orderDB = orderMapper.getById(id);
 
@@ -461,7 +470,8 @@ public class OrderServiceImpl implements OrderService {
      * @param id
      */
     @Override
-    public void complete(Long id) {
+    @Tool(name = "completeOrder", value = "将派送中的订单标记为已完成。需要订单内部 id。")
+    public void complete(@P("订单内部 id，必填") Long id) {
         Orders orderDB = orderMapper.getById(id);
 
         if (orderDB == null || !orderDB.getStatus().equals(Orders.DELIVERY_IN_PROGRESS)) {

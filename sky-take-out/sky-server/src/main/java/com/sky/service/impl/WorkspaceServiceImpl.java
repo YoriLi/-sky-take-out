@@ -11,6 +11,8 @@ import com.sky.vo.BusinessDataVO;
 import com.sky.vo.DishOverViewVO;
 import com.sky.vo.OrderOverViewVO;
 import com.sky.vo.SetmealOverViewVO;
+import dev.langchain4j.agent.tool.P;
+import dev.langchain4j.agent.tool.Tool;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -41,7 +43,8 @@ public class WorkspaceServiceImpl implements WorkspaceService {
      * @param end
      * @return
      */
-    public BusinessDataVO getBusinessData(LocalDateTime begin, LocalDateTime end) {
+    @Tool(name = "getTodayBusinessData", value = "按时间段查询营业数据：营业额、有效订单、完成率、客单价、新增用户。用户问今天生意/营业额怎么样时，传入当天 00:00:00 到 23:59:59。")
+    public BusinessDataVO getBusinessData(@P("开始时间") LocalDateTime begin, @P("结束时间") LocalDateTime end) {
         /**
          * 营业额：当日已完成订单的总金额
          * 有效订单：当日已完成订单的数量
@@ -93,6 +96,7 @@ public class WorkspaceServiceImpl implements WorkspaceService {
      *
      * @return
      */
+    @Tool(name = "getOrderOverview", value = "查询订单总览：待接单、待派送、已完成、已取消、全部订单数量。")
     public OrderOverViewVO getOrderOverView() {
         Map map = new HashMap();
         map.put("begin", LocalDateTime.now().with(LocalTime.MIN));
@@ -131,6 +135,7 @@ public class WorkspaceServiceImpl implements WorkspaceService {
      *
      * @return
      */
+    @Tool(name = "getDishOverview", value = "查询菜品总览：已启售、已停售数量。")
     public DishOverViewVO getDishOverView() {
         Map map = new HashMap();
         map.put("status", StatusConstant.ENABLE);
@@ -150,6 +155,7 @@ public class WorkspaceServiceImpl implements WorkspaceService {
      *
      * @return
      */
+    @Tool(name = "getSetmealOverview", value = "查询套餐总览：已启售、已停售数量。")
     public SetmealOverViewVO getSetmealOverView() {
         Map map = new HashMap();
         map.put("status", StatusConstant.ENABLE);

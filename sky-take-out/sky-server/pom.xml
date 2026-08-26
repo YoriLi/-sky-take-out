@@ -120,6 +120,18 @@
             <groupId>org.apache.poi</groupId>
             <artifactId>poi-ooxml</artifactId>
         </dependency>
+
+        <!-- LangChain4j：0.35.0 是最后一个 Java 8 字节码版本；0.36.0+ 最低要求 JDK 17，本项目编译级别为 1.8，不可升级 -->
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j</artifactId>
+            <version>0.35.0</version>
+        </dependency>
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j-open-ai</artifactId>
+            <version>0.35.0</version>
+        </dependency>
     </dependencies>
 
     <build>
