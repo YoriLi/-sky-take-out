@@ -1,5 +1,6 @@
 package com.sky.vo;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -14,19 +15,21 @@ import java.io.Serializable;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Schema(description = "订单概览返回的数据格式")
 public class OrderOverViewVO implements Serializable {
-    //待接单数量
+
+    @Schema(description = "待接单数量")
     private Integer waitingOrders;
 
-    //待派送数量
+    @Schema(description = "待派送数量")
     private Integer deliveredOrders;
 
-    //已完成数量
+    @Schema(description = "已完成数量")
     private Integer completedOrders;
 
-    //已取消数量
+    @Schema(description = "已取消数量")
     private Integer cancelledOrders;
 
-    //全部订单
+    @Schema(description = "全部订单")
     private Integer allOrders;
 }

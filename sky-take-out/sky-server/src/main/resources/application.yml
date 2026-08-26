@@ -38,31 +38,32 @@ logging:
 
 sky:
   jwt:
-    # 设置jwt签名加密时使用的秘钥
-    admin-secret-key: itcast # 管理端生成 Token 的加密密钥（签名秘钥）
-    # 设置jwt过期时间。单位毫秒
-    admin-ttl: 7200000
-    # 设置前端传递过来的令牌名称
-    admin-token-name: token  # 管理端前端请求头中携带 Token 的键名（如 Header 里的 key 叫 'token'）
-    user-secret-key:   # 用户端（小程序）生成 Token 的密钥
-    user-ttl: 7200000
+    # 通过环境变量注入；本地默认值仅用于开发，生产必须覆盖
+    admin-secret-key: ${SKY_JWT_ADMIN_SECRET:sky-admin-dev-secret-change-me-32b}
+    admin-ttl: ${SKY_JWT_ADMIN_TTL:7200000}
+    admin-token-name: token
+    user-secret-key: ${SKY_JWT_USER_SECRET:sky-user-dev-secret-change-me-32b}
+    user-ttl: ${SKY_JWT_USER_TTL:7200000}
     user-token-name: authentication
-  alioss: # 阿里云 OSS（对象存储服务，用于上传图片/文件）
-    endpoint: ${sky.alioss.endpoint}  # OSS 节点地址（如 oss-cn-hangzhou.aliyuncs.com）
-    access-key-id: ${sky.alioss.access-key-id} # 阿里云账号的 AccessKey ID
-    access-key-secret: ${sky.alioss.access-key-secret} # AccessKey Secret
-    bucket-name: ${sky.alioss.bucket-name} # 存储空间的名称（Bucket）
-  wechat: # 微信支付相关配置
-    appid: ${sky.wechat.appid}  # 微信小程序 AppID
-    secret: ${sky.wechat.secret} # 微信小程序 AppSecret
-    mchid: ${sky.wechat.mchid}  # 微信商户号（支付商户）
-    mchSerialNo: ${sky.wechat.mchSerialNo}  # 商户证书序列号
-    privateKeyFilePath: ${sky.wechat.privateKeyFilePath}  # 商户私钥文件路径
-    apiV3Key: ${sky.wechat.apiV3Key} # 微信支付 API v3 密钥
-    weChatPayCertFilePath: ${sky.wechat.weChatPayCertFilePath}  # 微信支付平台证书路径
-    notifyUrl: ${sky.wechat.notifyUrl} # 支付成功后，微信回调通知的地址
-    refundNotifyUrl: ${sky.wechat.refundNotifyUrl}  # 退款成功后，回调通知地址
+  alioss:
+    endpoint: ${sky.alioss.endpoint}
+    access-key-id: ${sky.alioss.access-key-id}
+    access-key-secret: ${sky.alioss.access-key-secret}
+    bucket-name: ${sky.alioss.bucket-name}
+  wechat:
+    appid: ${sky.wechat.appid}
+    secret: ${sky.wechat.secret}
+    mchid: ${sky.wechat.mchid}
+    mchSerialNo: ${sky.wechat.mchSerialNo}
+    privateKeyFilePath: ${sky.wechat.privateKeyFilePath}
+    apiV3Key: ${sky.wechat.apiV3Key}
+    weChatPayCertFilePath: ${sky.wechat.weChatPayCertFilePath}
+    notifyUrl: ${sky.wechat.notifyUrl}
+    refundNotifyUrl: ${sky.wechat.refundNotifyUrl}
   shop:
-    address: 湖北省武汉市洪山区徐东大街18号  # 固定店铺地址（用于计算配送距离/范围）
+    address: ${SKY_SHOP_ADDRESS:湖北省武汉市洪山区徐东大街18号}
   baidu:
-    ak: EFEEFFEFEFE # 百度地图 API 的密钥（用于根据地址计算经纬度或距离）
+    ak: ${SKY_BAIDU_AK:}
+  upload:
+    max-size-bytes: ${SKY_UPLOAD_MAX_SIZE:5242880}
+    allowed-extensions: jpg,jpeg,png,gif,webp

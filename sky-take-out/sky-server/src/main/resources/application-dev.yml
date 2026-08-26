@@ -1,28 +1,29 @@
 sky:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    host: localhost
-    port: 3306
-    database: sky_take_out
-    username: root
-    password: 123456
+    host: ${SKY_DB_HOST:localhost}
+    port: ${SKY_DB_PORT:3306}
+    database: ${SKY_DB_NAME:sky_take_out}
+    username: ${SKY_DB_USERNAME:root}
+    # 本地默认与原项目一致；生产务必用环境变量覆盖
+    password: ${SKY_DB_PASSWORD:123456}
   alioss:
-    endpoint: oss-cn-hangzhou.aliyuncs.com
-    access-key-id: LTAI5tPeFLzsPPT8gG3LPW64
-    access-key-secret: U6k1brOZ8gaOIXv3nXbulGTUzy6Pd7
-    bucket-name: sky-take-out
+    endpoint: ${SKY_ALIOSS_ENDPOINT:oss-cn-hangzhou.aliyuncs.com}
+    access-key-id: ${SKY_ALIOSS_ACCESS_KEY_ID:}
+    access-key-secret: ${SKY_ALIOSS_ACCESS_KEY_SECRET:}
+    bucket-name: ${SKY_ALIOSS_BUCKET:sky-take-out}
   redis:
-    host: localhost
-    port: 6379
-    password:
-    database: 10
+    host: ${SKY_REDIS_HOST:localhost}
+    port: ${SKY_REDIS_PORT:6379}
+    password: ${SKY_REDIS_PASSWORD:}
+    database: ${SKY_REDIS_DATABASE:10}
   wechat:
-    appid: wx9e8dde9d2df9df58
-    secret: 7a354c0cab2186281c18839acf453e37
-    mchid: 1561414331
-    mchSerialNo: 4B3B3DC35414AD50B1B755BAF8DE9CC7CF407606
-    privateKeyFilePath: D:\apiclient_key.pem
-    apiV3Key: CZBK51236435wxpay435434323FFDuv3
-    weChatPayCertFilePath: D:\wechatpay_166D96F876F45C7D07CE98952A96EC980368ACFC.pem
-    notifyUrl: https://www.weixin.qq.com/wxpay/pay.php
-    refundNotifyUrl: https://www.weixin.qq.com/wxpay/pay.php
+    appid: ${SKY_WECHAT_APPID:}
+    secret: ${SKY_WECHAT_SECRET:}
+    mchid: ${SKY_WECHAT_MCHID:}
+    mchSerialNo: ${SKY_WECHAT_MCH_SERIAL_NO:}
+    privateKeyFilePath: ${SKY_WECHAT_PRIVATE_KEY_PATH:}
+    apiV3Key: ${SKY_WECHAT_API_V3_KEY:}
+    weChatPayCertFilePath: ${SKY_WECHAT_CERT_PATH:}
+    notifyUrl: ${SKY_WECHAT_NOTIFY_URL:}
+    refundNotifyUrl: ${SKY_WECHAT_REFUND_NOTIFY_URL:}

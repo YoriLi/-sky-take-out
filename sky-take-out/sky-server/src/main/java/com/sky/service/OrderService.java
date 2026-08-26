@@ -47,6 +47,13 @@ public interface OrderService {
     OrderVO details(Long id);
 
     /**
+     * 用户端查询订单详情（校验归属）
+     * @param id
+     * @return
+     */
+    OrderVO userDetails(Long id);
+
+    /**
      * 用户取消订单
      * @param id
      */
@@ -75,7 +82,7 @@ public interface OrderService {
      * 接单
      * @param ordersCancelDTO
      */
-    void confirm(OrdersCancelDTO ordersCancelDTO);
+    void confirm(OrdersConfirmDTO ordersConfirmDTO);
 
     /**
      * 拒单

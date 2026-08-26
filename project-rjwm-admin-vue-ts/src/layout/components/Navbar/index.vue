@@ -127,8 +127,8 @@ export default class extends Vue {
   private audioUrl: './../../../assets/preview.mp3'
   private shopShow = false
   private dialogVisible = false
-  private status = 1
-  private setStatus = 1
+  private status = 0
+  private setStatus = 0
   private dialogFormVisible = false
   private ountUnread = 0
   // get ountUnread() {
