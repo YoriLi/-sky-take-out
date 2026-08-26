@@ -26,14 +26,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -75,17 +74,20 @@ public class OrderServiceImpl implements OrderService {
      * @return
      */
     @Override
+    @Transactional
     public OrderSubmitVO submitOrder(OrdersSubmitDTO ordersSubmitDTO) {
-//        异常情况的处理（收货地址为空、超出配送氛围、购物车为空）
+        Long currentId = BaseContext.getCurrentId();
+
         AddressBook addressBook = addressBookMapper.getById(ordersSubmitDTO.getAddressBookId());
         if (addressBook == null) {
             throw new AddressBookBusinessException(MessageConstant.ADDRESS_BOOK_IS_NULL);
         }
+        if (!currentId.equals(addressBook.getUserId())) {
+            throw new AddressBookBusinessException(MessageConstant.ACCESS_DENIED);
+        }
 
 //        检查用户的收货地址是否超出配送范围
         checkOutOfRange(addressBook.getCityName() + addressBook.getDistrictName() + addressBook.getDetail());
-
-        Long currentId = BaseContext.getCurrentId();
 
         ShoppingCart shoppingCart = new ShoppingCart();
 //        只能查询当前用户数据
@@ -125,15 +127,12 @@ public class OrderServiceImpl implements OrderService {
 //        清理购物车中的数据
         shoppingCartMapper.deleteByUserId(currentId);
 
-//        封装返回结果
-        OrderSubmitVO submitVO = OrderSubmitVO.builder()
+        return OrderSubmitVO.builder()
                 .id(order.getId())
                 .orderNumber(order.getNumber())
                 .orderAmount(order.getAmount())
                 .orderTime(order.getOrderTime())
                 .build();
-
-        return submitVO;
     }
 
     /**
@@ -170,18 +169,20 @@ public class OrderServiceImpl implements OrderService {
     }
 
     /**
-     * 支付成功，修改订单状态
+     * 支付成功，修改订单状态（按订单号，不依赖登录 ThreadLocal）
      * @param outTradeNo
      */
     @Override
     public void paySuccess(String outTradeNo) {
-//        当前登录用户id
-        Long userId = BaseContext.getCurrentId();
+        Orders orderDB = orderMapper.getByNumber(outTradeNo);
+        if (orderDB == null) {
+            throw new OrderBusinessException(MessageConstant.ORDER_NOT_FOUND);
+        }
+        // 幂等：已支付则直接返回
+        if (Orders.PAID.equals(orderDB.getPayStatus())) {
+            return;
+        }
 
-//        根据订单号查询当前用户的订单
-        Orders orderDB = orderMapper.getByNumberAndUserId(outTradeNo, userId);
-
-//        根据订单id更新订单的状态、支付方式、支付状态、结账时间
         Orders orders = Orders.builder()
                 .id(orderDB.getId())
                 .status(Orders.TO_BE_CONFIRMED)
@@ -192,12 +193,10 @@ public class OrderServiceImpl implements OrderService {
 
         HashMap map = new HashMap();
         map.put("type", 1);
-        map.put("orderId", orders.getId());
+        map.put("orderId", orderDB.getId());
         map.put("content", "订单号：" + outTradeNo);
 
-//        通过WebSocket实现来电提醒，向客户端浏览器推送消息
         webSocketServer.sendToAllClient(JSON.toJSONString(map));
-
     }
 
     /**
@@ -241,24 +240,27 @@ public class OrderServiceImpl implements OrderService {
     }
 
     /**
-     * 查询订单详情
+     * 查询订单详情（管理端）
      * @param id
      * @return
      */
     @Override
     public OrderVO details(Long id) {
-//        根据id查询订单
         Orders orders = orderMapper.getById(id);
+        if (orders == null) {
+            throw new OrderBusinessException(MessageConstant.ORDER_NOT_FOUND);
+        }
+        return buildOrderVO(orders);
+    }
 
-//        查询该订单对应的菜品/套餐明细
-        List<OrderDetail> orderDetailList = orderDetailMapper.getByOrderId(id);
-
-//        将订单及其详情封装到OrderVo并返回
-        OrderVO orderVO = new OrderVO();
-        BeanUtils.copyProperties(orders, orderVO);
-        orderVO.setOrderDetailList(orderDetailList);
-
-        return orderVO;
+    /**
+     * 用户端查询订单详情（校验归属）
+     * @param id
+     * @return
+     */
+    @Override
+    public OrderVO userDetails(Long id) {
+        return buildOrderVO(getOrderOwnedByCurrentUser(id));
     }
 
     /**
@@ -267,15 +269,8 @@ public class OrderServiceImpl implements OrderService {
      */
     @Override
     public void userCancelById(Long id) throws Exception {
-//        根据id查询订单
-        Orders orderDB = orderMapper.getById(id);
+        Orders orderDB = getOrderOwnedByCurrentUser(id);
 
-//        校验订单是否存在
-        if (orderDB == null) {
-            throw new OrderBusinessException(MessageConstant.ORDER_NOT_FOUND);
-        }
-
-//      订单状态 1待付款 2待接单 3已接单 4派送中 5已完成 6已取消
         if (orderDB.getStatus() > 2) {
             throw new OrderBusinessException(MessageConstant.ORDER_STATUS_ERROR);
         }
@@ -283,21 +278,16 @@ public class OrderServiceImpl implements OrderService {
         Orders orders = new Orders();
         orders.setId(orderDB.getId());
 
-//        订单处于待接单的状态下取消，需要进行退款
         if (orderDB.getStatus().equals(Orders.TO_BE_CONFIRMED)) {
-//            调用微信支付退款接口
             weChatPayUtil.refund(
                     orderDB.getNumber(),
                     orderDB.getNumber(),
-                    orders.getAmount(),
-                    orders.getAmount()
+                    orderDB.getAmount(),
+                    orderDB.getAmount()
             );
-
-//            支付状态修改为 退款
             orders.setPayStatus(Orders.REFUND);
         }
 
-//        更新订单状态，取消原因、时间
         orders.setStatus(Orders.CANCELLED);
         orders.setCancelReason("用户取消");
         orders.setCancelTime(LocalDateTime.now());
@@ -310,25 +300,19 @@ public class OrderServiceImpl implements OrderService {
      */
     @Override
     public void repetition(Long id) {
-//        查询当前用户id
+        Orders orderDB = getOrderOwnedByCurrentUser(id);
         Long userId = BaseContext.getCurrentId();
 
-//        根据订单id查询当前订单详情
-        List<OrderDetail> orderDetailList = orderDetailMapper.getByOrderId(id);
+        List<OrderDetail> orderDetailList = orderDetailMapper.getByOrderId(orderDB.getId());
 
-//        将订单详情对象转为购物车对象
         List<ShoppingCart> shoppingCartList = orderDetailList.stream().map(orderDetail -> {
             ShoppingCart shoppingCart = new ShoppingCart();
-
-//            将原订单详情里面的菜品信息重新复制到购物车对象中
             BeanUtils.copyProperties(orderDetail, shoppingCart, "id");
             shoppingCart.setUserId(userId);
             shoppingCart.setCreateTime(LocalDateTime.now());
-
             return shoppingCart;
         }).collect(Collectors.toList());
 
-//        将购物车对象批量添加到购物车
         shoppingCartMapper.insertBatch(shoppingCartList);
     }
 
@@ -373,9 +357,9 @@ public class OrderServiceImpl implements OrderService {
      * @param ordersCancelDTO
      */
     @Override
-    public void confirm(OrdersCancelDTO ordersCancelDTO) {
+    public void confirm(OrdersConfirmDTO ordersConfirmDTO) {
         Orders orders = Orders.builder()
-                .id(ordersCancelDTO.getId())
+                .id(ordersConfirmDTO.getId())
                 .status(Orders.CONFIRMED)
                 .build();
         orderMapper.update(orders);
@@ -478,19 +462,15 @@ public class OrderServiceImpl implements OrderService {
      */
     @Override
     public void complete(Long id) {
-//        根据id查询订单
         Orders orderDB = orderMapper.getById(id);
 
-//        校验订单是否存在，并且状态为4
         if (orderDB == null || !orderDB.getStatus().equals(Orders.DELIVERY_IN_PROGRESS)) {
             throw new OrderBusinessException(MessageConstant.ORDER_STATUS_ERROR);
         }
 
         Orders orders = new Orders();
-        orders.setId(orders.getId());
-
-//        更新订单状态，状态转为完成
-        orders.setStatus(Orders.CONFIRMED);
+        orders.setId(orderDB.getId());
+        orders.setStatus(Orders.COMPLETED);
         orders.setDeliveryTime(LocalDateTime.now());
 
         orderMapper.update(orders);
@@ -502,18 +482,35 @@ public class OrderServiceImpl implements OrderService {
      */
     @Override
     public void reminder(Long id) {
-//        查询订单是否存在
-        Orders orders = orderMapper.getById(id);
-        if (orders == null) {
-            throw new OrderBusinessException(MessageConstant.ORDER_NOT_FOUND);
-        }
+        Orders orders = getOrderOwnedByCurrentUser(id);
 
-//        基于WebSocket实现催单
         HashMap map = new HashMap();
         map.put("type", 2);
         map.put("orderId", id);
         map.put("content", "订单号：" + orders.getNumber());
         webSocketServer.sendToAllClient(JSON.toJSONString(map));
+    }
+
+    /**
+     * 校验订单归属当前登录用户
+     */
+    private Orders getOrderOwnedByCurrentUser(Long id) {
+        Orders order = orderMapper.getById(id);
+        if (order == null) {
+            throw new OrderBusinessException(MessageConstant.ORDER_NOT_FOUND);
+        }
+        if (!order.getUserId().equals(BaseContext.getCurrentId())) {
+            throw new OrderBusinessException(MessageConstant.ACCESS_DENIED);
+        }
+        return order;
+    }
+
+    private OrderVO buildOrderVO(Orders orders) {
+        List<OrderDetail> orderDetailList = orderDetailMapper.getByOrderId(orders.getId());
+        OrderVO orderVO = new OrderVO();
+        BeanUtils.copyProperties(orders, orderVO);
+        orderVO.setOrderDetailList(orderDetailList);
+        return orderVO;
     }
 
     /**

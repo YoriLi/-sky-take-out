@@ -8,7 +8,6 @@ import com.wechat.pay.contrib.apache.httpclient.util.PemUtil;
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.http.HttpHeaders;
 import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
@@ -89,30 +88,6 @@ public class WeChatPayUtil {
         httpPost.setEntity(new StringEntity(body, "UTF-8"));
 
         CloseableHttpResponse response = httpClient.execute(httpPost);
-        try {
-            String bodyAsString = EntityUtils.toString(response.getEntity());
-            return bodyAsString;
-        } finally {
-            httpClient.close();
-            response.close();
-        }
-    }
-
-    /**
-     * 发送get方式请求
-     *
-     * @param url
-     * @return
-     */
-    private String get(String url) throws Exception {
-        CloseableHttpClient httpClient = getClient();
-
-        HttpGet httpGet = new HttpGet(url);
-        httpGet.addHeader(HttpHeaders.ACCEPT, ContentType.APPLICATION_JSON.toString());
-        httpGet.addHeader(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.toString());
-        httpGet.addHeader("Wechatpay-Serial", weChatProperties.getMchSerialNo());
-
-        CloseableHttpResponse response = httpClient.execute(httpGet);
         try {
             String bodyAsString = EntityUtils.toString(response.getEntity());
             return bodyAsString;

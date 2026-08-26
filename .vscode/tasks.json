@@ -1,0 +1,60 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "frontend: install",
+            "type": "shell",
+            "command": "npm install",
+            "options": {
+                "cwd": "${workspaceFolder}/project-rjwm-admin-vue-ts"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "frontend: serve",
+            "type": "shell",
+            "command": "npm run serve",
+            "options": {
+                "cwd": "${workspaceFolder}/project-rjwm-admin-vue-ts"
+            },
+            "isBackground": true,
+            "problemMatcher": []
+        },
+        {
+            "label": "frontend: lint",
+            "type": "shell",
+            "command": "npm run lint",
+            "options": {
+                "cwd": "${workspaceFolder}/project-rjwm-admin-vue-ts"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "frontend: unit test",
+            "type": "shell",
+            "command": "npm run test:unit",
+            "options": {
+                "cwd": "${workspaceFolder}/project-rjwm-admin-vue-ts"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "backend: test",
+            "type": "shell",
+            "command": "mvn test",
+            "options": {
+                "cwd": "${workspaceFolder}/sky-take-out"
+            },
+            "problemMatcher": "$maven"
+        },
+        {
+            "label": "backend: package",
+            "type": "shell",
+            "command": "mvn clean package -DskipTests",
+            "options": {
+                "cwd": "${workspaceFolder}/sky-take-out"
+            },
+            "problemMatcher": "$maven"
+        }
+    ]
+}

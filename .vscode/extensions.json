@@ -1,0 +1,14 @@
+{
+    "recommendations": [
+        "octref.vetur",
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "mhutchie.git-graph",
+        "vscjava.vscode-java-pack",
+        "vmware.vscode-spring-boot",
+        "vscjava.vscode-maven",
+        "pivotal.vscode-boot-dev-pack",
+        "redhat.java",
+        "GabrielBB.vscode-lombok"
+    ]
+}

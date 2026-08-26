@@ -1,7 +1,9 @@
 package com.sky.service.impl;
 
+import com.sky.constant.MessageConstant;
 import com.sky.context.BaseContext;
 import com.sky.entity.AddressBook;
+import com.sky.exception.AddressBookBusinessException;
 import com.sky.mapper.AddressBookMapper;
 import com.sky.service.AddressBookService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,7 +45,7 @@ public class AddressBookServiceImpl implements AddressBookService {
      */
     @Override
     public AddressBook getById(Long id) {
-        return addressBookMapper.getById(id);
+        return getOwnedAddress(id);
     }
 
     /**
@@ -52,6 +54,8 @@ public class AddressBookServiceImpl implements AddressBookService {
      */
     @Override
     public void update(AddressBook addressBook) {
+        getOwnedAddress(addressBook.getId());
+        addressBook.setUserId(BaseContext.getCurrentId());
         addressBookMapper.update(addressBook);
     }
 
@@ -61,12 +65,12 @@ public class AddressBookServiceImpl implements AddressBookService {
      */
     @Override
     public void setDefault(AddressBook addressBook) {
-        //1、将当前用户的所有地址修改为非默认地址 update address_book set is_default = ? where user_id = ?
+        getOwnedAddress(addressBook.getId());
+
         addressBook.setIsDefault(0);
         addressBook.setUserId(BaseContext.getCurrentId());
         addressBookMapper.updateIsDefaultByUserId(addressBook);
 
-        //2、将当前地址改为默认地址 update address_book set is_default = ? where id = ?
         addressBook.setIsDefault(1);
         addressBookMapper.update(addressBook);
     }
@@ -77,6 +81,18 @@ public class AddressBookServiceImpl implements AddressBookService {
      */
     @Override
     public void deleteById(Long id) {
+        getOwnedAddress(id);
         addressBookMapper.deleteById(id);
+    }
+
+    private AddressBook getOwnedAddress(Long id) {
+        AddressBook addressBook = addressBookMapper.getById(id);
+        if (addressBook == null) {
+            throw new AddressBookBusinessException(MessageConstant.ADDRESS_BOOK_IS_NULL);
+        }
+        if (!addressBook.getUserId().equals(BaseContext.getCurrentId())) {
+            throw new AddressBookBusinessException(MessageConstant.ACCESS_DENIED);
+        }
+        return addressBook;
     }
 }

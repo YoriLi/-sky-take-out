@@ -28,6 +28,13 @@ public interface OrderMapper {
     Orders getByNumberAndUserId(@Param("orderNumber") String orderNumber, @Param("userId") Long userId);
 
     /**
+     * 根据订单号查询订单（支付回调等无登录场景）
+     * @param orderNumber
+     * @return
+     */
+    Orders getByNumber(String orderNumber);
+
+    /**
      * 修改订单信息
      * @param orders
      */

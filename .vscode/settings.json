@@ -1,0 +1,40 @@
+{
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+        "source.fixAll.eslint": "explicit"
+    },
+    "files.eol": "\n",
+    "files.associations": {
+        "*.vue": "vue"
+    },
+    "eslint.validate": [
+        "javascript",
+        "javascriptreact",
+        "typescript",
+        "typescriptreact",
+        "vue"
+    ],
+    "vetur.validation.template": false,
+    "java.jdt.ls.java.home": "F:\\compititon\\jdk17",
+    "java.configuration.runtimes": [
+        {
+            "name": "JavaSE-17",
+            "path": "F:\\compititon\\jdk17",
+            "default": true
+        }
+    ],
+    "java.configuration.updateBuildConfiguration": "interactive",
+    "java.import.maven.enabled": true,
+    "java.autobuild.enabled": true,
+    "maven.executable.path": "D:\\Tools\\apache-maven-3.9.9\\bin\\mvn.cmd",
+    "[vue]": {
+        "editor.defaultFormatter": "octref.vetur"
+    },
+    "[typescript]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[javascript]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "java.compile.nullAnalysis.mode": "disabled"
+}
