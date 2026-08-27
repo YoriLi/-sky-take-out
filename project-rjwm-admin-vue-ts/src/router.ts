@@ -145,6 +145,16 @@ const router = new Router({
             title: "通知中心",
             icon: "icon-inform"
           }
+        },
+        {
+          path: "agent",
+          component: () =>
+            import(/* webpackChunkName: "agent" */ "@/views/agent/index.vue"),
+          name: "Agent",
+          meta: {
+            title: "AI 助手",
+            icon: "icon-inform"
+          }
         }
       ]
     },

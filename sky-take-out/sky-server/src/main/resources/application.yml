@@ -67,3 +67,9 @@ sky:
   upload:
     max-size-bytes: ${SKY_UPLOAD_MAX_SIZE:5242880}
     allowed-extensions: jpg,jpeg,png,gif,webp
+  agent:
+    api-key: ${SKY_AGENT_API_KEY:}
+    base-url: ${SKY_AGENT_BASE_URL:https://api.deepseek.com}
+    model: ${SKY_AGENT_MODEL:deepseek-chat}
+    timeout-seconds: ${SKY_AGENT_TIMEOUT:120}
+    memory-max-messages: ${SKY_AGENT_MEMORY_MAX:20}
